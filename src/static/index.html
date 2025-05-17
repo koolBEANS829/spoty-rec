@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Song Recommender</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Circular', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+        .navbar {
+            background-color: #000000;
+        }
+        .card {
+            background-color: #181818;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+        .card:hover {
+            background-color: #282828;
+        }
+        .btn-spotify {
+            background-color: #1DB954;
+            color: white;
+            border: none;
+        }
+        .btn-spotify:hover {
+            background-color: #1ed760;
+            color: white;
+        }
+        .btn-outline-spotify {
+            color: #1DB954;
+            border-color: #1DB954;
+        }
+        .btn-outline-spotify:hover {
+            background-color: #1DB954;
+            color: white;
+        }
+        .like-btn {
+            color: #1DB954;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+        .dislike-btn {
+            color: #ff5252;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+        .like-btn:hover, .dislike-btn:hover {
+            transform: scale(1.2);
+        }
+        .album-img {
+            width: 100%;
+            border-radius: 4px;
+        }
+        .player-container {
+            background-color: #282828;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .progress {
+            height: 4px;
+            background-color: #535353;
+        }
+        .progress-bar {
+            background-color: #1DB954;
+        }
+        .auth-container {
+            max-width: 400px;
+            margin: 100px auto;
+        }
+        .recommendation-container {
+            min-height: 400px;
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        .spinner-border {
+            color: #1DB954;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-music-note-beamed"></i> Spotify Song Recommender
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item" id="nav-recommendations">
+                        <a class="nav-link active" href="#recommendations">Recommendations</a>
+                    </li>
+                    <li class="nav-item" id="nav-history">
+                        <a class="nav-link" href="#history">History</a>
+                    </li>
+                    <li class="nav-item" id="nav-profile">
+                        <a class="nav-link" href="#profile">Profile</a>
+                    </li>
+                    <li class="nav-item" id="nav-logout">
+                        <a class="nav-link" href="#logout">Logout</a>
+                    </li>
+                    <li class="nav-item" id="nav-login">
+                        <a class="nav-link" href="#login">Login</a>
+                    </li>
+                    <li class="nav-item" id="nav-register">
+                        <a class="nav-link" href="#register">Register</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <!-- Authentication Pages -->
+        <div id="login-page" class="auth-container d-none">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="text-center mb-4">Login</h2>
+                    <form id="login-form">
+                        <div class="mb-3">
+                            <label for="login-username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="login-username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="login-password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="login-password" required>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-spotify">Login</button>
+                            <button type="button" class="btn btn-outline-spotify" id="go-to-register">Register Instead</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="register-page" class="auth-container d-none">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="text-center mb-4">Register</h2>
+                    <form id="register-form">
+                        <div class="mb-3">
+                            <label for="register-username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="register-username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="register-email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="register-email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="register-password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="register-password" required>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-spotify">Register</button>
+                            <button type="button" class="btn btn-outline-spotify" id="go-to-login">Login Instead</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations Page -->
+        <div id="recommendations-page" class="d-none">
+            <h2 class="mb-4">Your Recommendations <button class="btn btn-sm btn-outline-spotify ms-3" id="refresh-recommendations"><i class="bi bi-arrow-clockwise"></i> Refresh</button></h2>
+            
+            <!-- Connect Spotify Button (shown if not connected) -->
+            <div id="spotify-connect-container" class="mb-4 d-none">
+                <div class="alert alert-info">
+                    <p>Connect your Spotify account to get personalized recommendations and play songs.</p>
+                    <button id="connect-spotify" class="btn btn-spotify">
+                        <i class="bi bi-spotify"></i> Connect Spotify
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Player -->
+            <div id="player-container" class="player-container mb-4">
+                <div class="row align-items-center">
+                    <div class="col-md-3">
+                        <img id="current-album-art" src="https://via.placeholder.com/300" alt="Album Art" class="album-img">
+                    </div>
+                    <div class="col-md-9">
+                        <h4 id="current-song-title">No song playing</h4>
+                        <p id="current-song-artist">-</p>
+                        <div class="progress mb-3">
+                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span id="current-time">0:00</span>
+                            <span id="duration">0:00</span>
+                        </div>
+                        <div class="d-flex justify-content-center">
+                            <button id="prev-btn" class="btn btn-outline-light me-2">
+                                <i class="bi bi-skip-backward-fill"></i>
+                            </button>
+                            <button id="play-btn" class="btn btn-spotify me-2">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
+                            <button id="pause-btn" class="btn btn-spotify me-2 d-none">
+                                <i class="bi bi-pause-fill"></i>
+                            </button>
+                            <button id="next-btn" class="btn btn-outline-light">
+                                <i class="bi bi-skip-forward-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recommendations List -->
+            <div class="recommendation-container">
+                <div id="recommendations-loading" class="loading">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <div id="recommendations-list" class="row g-4">
+                    <!-- Recommendations will be populated here -->
+                </div>
+                <div id="no-recommendations" class="text-center py-5 d-none">
+                    <p>No recommendations available yet. Start by connecting your Spotify account and providing some feedback.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Page -->
+        <div id="history-page" class="d-none">
+            <h2 class="mb-4">Your Listening History</h2>
+            <div id="history-loading" class="loading">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            <div id="history-list" class="row g-4">
+                <!-- History will be populated here -->
+            </div>
+            <div id="no-history" class="text-center py-5 d-none">
+                <p>You haven't provided feedback on any songs yet.</p>
+            </div>
+        </div>
+
+        <!-- Profile Page -->
+        <div id="profile-page" class="d-none">
+            <h2 class="mb-4">Your Profile</h2>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Account Information</h5>
+                            <p><strong>Username:</strong> <span id="profile-username">-</span></p>
+                            <p><strong>Email:</strong> <span id="profile-email">-</span></p>
+                            <p><strong>Member Since:</strong> <span id="profile-created">-</span></p>
+                            <p><strong>Last Login:</strong> <span id="profile-last-login">-</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Spotify Connection</h5>
+                            <div id="spotify-status-connected" class="d-none">
+                                <p class="text-success"><i class="bi bi-check-circle-fill"></i> Connected to Spotify</p>
+                                <button id="disconnect-spotify" class="btn btn-outline-danger">Disconnect</button>
+                            </div>
+                            <div id="spotify-status-disconnected" class="d-none">
+                                <p class="text-danger"><i class="bi bi-x-circle-fill"></i> Not connected to Spotify</p>
+                                <button id="profile-connect-spotify" class="btn btn-spotify">
+                                    <i class="bi bi-spotify"></i> Connect Spotify
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h5>Your Stats</h5>
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <h3 id="stats-liked">0</h3>
+                            <p>Songs Liked</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h3 id="stats-disliked">0</h3>
+                            <p>Songs Disliked</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h3 id="stats-recommendations">0</h3>
+                            <p>Recommendations</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Song Template (hidden) -->
+    <template id="song-template">
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-4">
+                            <img class="song-image album-img" src="" alt="Album Art">
+                        </div>
+                        <div class="col-8">
+                            <h5 class="song-title"></h5>
+                            <p class="song-artist text-muted"></p>
+                            <div class="d-flex justify-content-between mt-3">
+                                <button class="btn btn-sm btn-outline-light play-song-btn" data-song-id="">
+                                    <i class="bi bi-play-fill"></i> Play
+                                </button>
+                                <div>
+                                    <i class="bi bi-hand-thumbs-up like-btn me-2" data-song-id="" data-rating="like"></i>
+                                    <i class="bi bi-hand-thumbs-down dislike-btn" data-song-id="" data-rating="dislike"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Toast Notifications -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="toast-container"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/feedback.js"></script>
+</body>
+</html>
